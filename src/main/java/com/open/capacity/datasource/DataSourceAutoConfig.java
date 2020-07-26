@@ -1,8 +1,12 @@
 package com.open.capacity.datasource;
 
 
-import javax.sql.DataSource;
-
+import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure;
+import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
+import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
+import com.open.capacity.datasource.aop.DataSourceAOP;
+import com.open.capacity.datasource.constant.DataSourceKey;
+import com.open.capacity.datasource.util.DynamicDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,21 +17,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
-import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure;
-import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
-import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
-import com.open.capacity.datasource.aop.DataSourceAOP;
-import com.open.capacity.datasource.constant.DataSourceKey;
-import com.open.capacity.datasource.util.DynamicDataSource;
+import javax.sql.DataSource;
 
 
 
 
 /**
- * @author 作者 owen 
- * @version 创建时间：2017年04月23日 下午20:01:06 类说明
- * blog: https://blog.51cto.com/13005375 
- * code: https://gitee.com/owenwangwen/open-capacity-platform
+ *
  * 在设置了spring.datasource.enable.dynamic 等于true是开启多数据源，配合日志
  */
 @Configuration
@@ -35,26 +31,36 @@ import com.open.capacity.datasource.util.DynamicDataSource;
 @AutoConfigureBefore(value={DruidDataSourceAutoConfigure.class,MybatisPlusAutoConfiguration.class})
 @ConditionalOnProperty(name = {"spring.datasource.dynamic.enable"}, matchIfMissing = false, havingValue = "true")
 public class DataSourceAutoConfig {
- 
- 
-	 
-//	创建数据源
-//	所有引入db-core的模块都需要一个核心库，可以是user-center，也可以是oauth-center,file-center ,sms-center
+
+
+    /**
+     * 创建数据源
+     * @return
+     */
 	@Bean
 	@ConfigurationProperties("spring.datasource.druid.core")
 	public DataSource dataSourceCore(){
 	    return DruidDataSourceBuilder.create().build();
 	}
-//	所有的核心库共享一个日志中心模块，改模块不采用mysql中的innodb引擎，采用归档引擎
+
+    /**
+     * 创建数据源
+     * @return
+     */
 	@Bean
 	@ConfigurationProperties("spring.datasource.druid.log")
 	public DataSource dataSourceLog(){
 	    return DruidDataSourceBuilder.create().build();
 	}
-	
-	
+
+    /**
+     * {@code @Primary}注入多个相同的实例时，选中这个注解表示的这个实例。
+     * {@code @Qualifier} 如果存在多个相同bean实例，配合使用
+     * 只需要纳入动态数据源到spring容器
+     * @return
+     */
 	@Primary
-    @Bean // 只需要纳入动态数据源到spring容器
+    @Bean
     public DataSource dataSource() {
         DynamicDataSource dataSource = new DynamicDataSource();
         DataSource coreDataSource =  dataSourceCore() ;

@@ -1,21 +1,15 @@
 package com.open.capacity.datasource.util;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.sql.DataSource;
-
+import com.open.capacity.datasource.constant.DataSourceKey;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
-import com.open.capacity.datasource.constant.DataSourceKey;
+import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * spring动态数据源（需要继承AbstractRoutingDataSource）
  *
- * @author owen
- * @create 2017年7月2日
- * blog: https://blog.51cto.com/13005375 
- * code: https://gitee.com/owenwangwen/open-capacity-platform
  */
 public class DynamicDataSource extends AbstractRoutingDataSource {
 
@@ -23,11 +17,15 @@ public class DynamicDataSource extends AbstractRoutingDataSource {
 
     public DynamicDataSource() {
         datasources = new HashMap<>();
-
         super.setTargetDataSources(datasources);
-
     }
 
+    /**
+     * 添加数据源
+     * @param key
+     * @param data
+     * @param <T>
+     */
     public <T extends DataSource> void addDataSource(DataSourceKey key, T data) {
         datasources.put(key, data);
     }
@@ -35,5 +33,4 @@ public class DynamicDataSource extends AbstractRoutingDataSource {
     protected Object determineCurrentLookupKey() {
         return DataSourceHolder.getDataSourceKey();
     }
-
 }

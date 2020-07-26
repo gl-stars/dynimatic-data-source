@@ -14,12 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 切换数据源Advice
- *  blog: https://blog.51cto.com/13005375 
- * code: https://gitee.com/owenwangwen/open-capacity-platform
+ * {@code @Order(-1)}保证该AOP在@Transactional之前执行
  */
 @Slf4j
 @Aspect
-@Order(-1) // 保证该AOP在@Transactional之前执行
+@Order(-1)
 public class DataSourceAOP {
 
 

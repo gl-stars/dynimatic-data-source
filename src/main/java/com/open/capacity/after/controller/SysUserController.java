@@ -2,11 +2,14 @@ package com.open.capacity.after.controller;
 
 
 import com.open.capacity.after.service.SysUserService;
+import com.open.capacity.datasource.annotation.DataSource;
 import com.open.capacity.datasource.constant.DataSourceKey;
 import com.open.capacity.datasource.util.DataSourceHolder;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>
@@ -32,13 +35,24 @@ public class SysUserController {
 
     /**
      * 查询
-     * @param id 编号
+     *
      * @return
      */
     @GetMapping("/log")
-    public Object findUserById() {
+    public Object findUserCount() {
         // 调用log数据源
         DataSourceHolder.setDataSourceKey(DataSourceKey.log);
         return sysUserService.count();
+    }
+
+    /**
+     * {@code @DataSource(name = "log")} 调用数据源
+     * @param id
+     * @return
+     */
+    @DataSource(name = "log")
+    @GetMapping("/{id}")
+    public Object findById(@PathVariable Long id){
+        return sysUserService.getById(id);
     }
 }
