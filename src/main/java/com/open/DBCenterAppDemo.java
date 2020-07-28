@@ -1,4 +1,4 @@
-package com.open.capacity;
+package com.open;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
