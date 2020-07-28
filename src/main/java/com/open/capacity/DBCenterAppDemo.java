@@ -13,5 +13,4 @@ public class DBCenterAppDemo {
 	public static void main(String[] args) {
 		SpringApplication.run(DBCenterAppDemo.class, args);
 	}
-
 }
