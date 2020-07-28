@@ -1,5 +1,6 @@
 package com.open.capacity.datasource.util;
 
+import com.open.capacity.datasource.constant.DataSourceKey;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
 import javax.sql.DataSource;
@@ -35,14 +36,13 @@ public class DynamicDataSource extends AbstractRoutingDataSource {
      * @param data
      * @param <T>
      */
-    public <T extends DataSource> void addDataSource(String key, T data) {
+    public <T extends DataSource> void addDataSource(DataSourceKey key, T data) {
         datasources.put(key, data);
     }
 
     /**
      * 判断当前线程使用哪一种数据源
      */
-    @Override
     protected Object determineCurrentLookupKey() {
         return DataSourceHolder.getDataSourceKey();
     }

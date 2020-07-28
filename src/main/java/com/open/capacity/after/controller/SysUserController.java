@@ -2,6 +2,8 @@ package com.open.capacity.after.controller;
 
 
 import com.open.capacity.after.service.SysUserService;
+import com.open.capacity.datasource.annotation.DataSource;
+import com.open.capacity.datasource.constant.DataSourceKey;
 import com.open.capacity.datasource.util.DataSourceHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +29,7 @@ public class SysUserController {
      * <p>这里我并没有指定数据源，使用默认的数据源。这里的默认数据源是core，但是我执行一次log数据源之后，没有指定数据源情况下也是执行log数据源。有的时候会两个数据源之间来回切换。</p>
      */
     @GetMapping
+    @DataSource(name = "core")
     public Object list() {
         return sysUserService.list();
     }
@@ -39,7 +42,7 @@ public class SysUserController {
     @GetMapping("/log")
     public Object findUserCount() {
         // 调用log数据源
-        DataSourceHolder.setDataSourceKey("log");
+        DataSourceHolder.setDataSourceKey(DataSourceKey.log);
         return sysUserService.count();
     }
 }

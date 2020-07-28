@@ -1,5 +1,7 @@
 package com.open.capacity.datasource.util;
 
+import com.open.capacity.datasource.constant.DataSourceKey;
+
 /**
  * 用于数据源切换
  * @author stars
@@ -9,13 +11,13 @@ public class DataSourceHolder {
     /**
      * 注意使用ThreadLocal，微服务下游建议使用信号量
      */
-    private static final ThreadLocal<String> dataSourceKey = new ThreadLocal<>();
+    private static final ThreadLocal<DataSourceKey> dataSourceKey = new ThreadLocal<>();
 
     /**
      * 得到当前的数据库连接
      * @return
      */
-    public static String getDataSourceKey() {
+    public static DataSourceKey getDataSourceKey() {
         return dataSourceKey.get();
     }
 
@@ -23,7 +25,7 @@ public class DataSourceHolder {
      * 设置当前的数据库连接
      * @param type
      */
-    public static void setDataSourceKey(String type) {
+    public static void setDataSourceKey(DataSourceKey type) {
         dataSourceKey.set(type);
     }
 
@@ -33,6 +35,4 @@ public class DataSourceHolder {
     public static void clearDataSourceKey() {
         dataSourceKey.remove();
     }
-
-
 }

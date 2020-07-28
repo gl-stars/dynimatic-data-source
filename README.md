@@ -5,7 +5,7 @@
 | 分支 | 说明                 |
 | ---- | -------------------- |
 | v1   | 实现最简洁的多数据源 |
-|      |                      |
+| v2   | 添加注解切换数据源   |
 |      |                      |
 
 
@@ -38,7 +38,9 @@
 
 在初始化时指定多数据源案例代码：
 
-1、创建一个类`DynamicDataSource`，继承`AbstractRoutingDataSource`，并重写`determineCurrentLookupKey()`方法。该方法负责判断当前线程使用哪一种数据源。这是最简单的一种实现方法，不重写任何非抽象方法，但必须在初始化时配置至少一个的数据源。
+## 1、创建DynamicDataSource类
+
+创建一个类`DynamicDataSource`，继承`AbstractRoutingDataSource`，并重写`determineCurrentLookupKey()`方法。该方法负责判断当前线程使用哪一种数据源。这是最简单的一种实现方法，不重写任何非抽象方法，但必须在初始化时配置至少一个的数据源。
 
 ```java
 package com.open.capacity.datasource.util;
@@ -265,4 +267,92 @@ mybatis:
     mapUnderscoreToCamelCase: true
     map-underscore-to-camel-case: true
 ```
+
+## 附加说明
+
+在引入依赖的时候，`spring-boot-starter-actuator`依赖必须引入，这是要给`bean`管理的。如果没有这个依赖，在注入两个数据源会报数据源循环注入的问题。
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+# 三、v2功能说明
+
+添加 `@DataSource`注解，在需要实现的方法上添加这个注解就可以切换数据源。这里能够很好的区分调用数据源，是因为我在每个调用的方法上都指定了数据源，没有使用默认数据源的。
+
+## 3.1、创建DataSource注解
+
+```java
+package com.open.capacity.datasource.annotation;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+
+/**
+ * 数据源选择
+ * @author stars
+ */
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface DataSource {
+    //数据库名称
+    String name();
+}
+```
+
+## 3.2、创建切面实现注解效果
+
+```java
+package com.open.capacity.datasource.aop;
+
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.springframework.core.annotation.Order;
+
+import com.open.capacity.datasource.annotation.DataSource;
+import com.open.capacity.datasource.constant.DataSourceKey;
+import com.open.capacity.datasource.util.DataSourceHolder;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 切换数据源Advice
+ * {@code @Order(-1)}保证该AOP在@Transactional之前执行
+ * @author stars
+ */
+@Slf4j
+@Aspect
+@Order(-1) // 保证该AOP在@Transactional之前执行
+public class DataSourceAOP {
+
+    @Before("@annotation(ds)")
+    public void changeDataSource(JoinPoint point, DataSource ds) throws Throwable {
+        String dsId = ds.name();
+        try {
+            DataSourceKey dataSourceKey = DataSourceKey.valueOf(dsId);
+            DataSourceHolder.setDataSourceKey(dataSourceKey);
+        } catch (Exception e) {
+            log.error("数据源[{}]不存在，使用默认数据源 > {}", ds.name(), point.getSignature());
+        }
+    }
+
+    @After("@annotation(ds)")
+    public void restoreDataSource(JoinPoint point, DataSource ds) {
+        log.debug("Revert DataSource : {transIdo} > {}", ds.name(), point.getSignature());
+        DataSourceHolder.clearDataSourceKey();
+    }
+}
+```
+
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20200728131826432.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQxODUzNDQ3,size_16,color_FFFFFF,t_70)![在这里插入图片描述](https://img-blog.csdnimg.cn/20200728131932629.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQxODUzNDQ3,size_16,color_FFFFFF,t_70)
 
